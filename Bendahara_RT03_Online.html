@@ -1,0 +1,1131 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Bendaharaku - Laporan Keuangan</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+      }
+      :root {
+        --primary: #0f172a;
+        --primary-light: #1e293b;
+        --accent: #3b82f6;
+        --success: #10b981;
+        --success-bg: #d1fae5;
+        --success-light: #ecfdf5;
+        --danger: #ef4444;
+        --danger-bg: #fee2e2;
+        --danger-light: #fef2f2;
+        --bg: #f8fafc;
+        --surface: #ffffff;
+        --text: #0f172a;
+        --text-secondary: #64748b;
+        --text-muted: #94a3b8;
+        --border: #e2e8f0;
+        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+        --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+        --radius: 16px;
+        --radius-lg: 24px;
+        --radius-xl: 32px;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        font-family:
+          'Inter',
+          -apple-system,
+          BlinkMacSystemFont,
+          sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      /* Loading State */
+      .loading-overlay {
+        position: fixed;
+        inset: 0;
+        background: var(--bg);
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+        transition:
+          opacity 0.5s,
+          visibility 0.5s;
+      }
+      .loading-overlay.hidden {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+      }
+      .loading-spinner {
+        width: 48px;
+        height: 48px;
+        border: 4px solid var(--border);
+        border-top-color: var(--accent);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .loading-text {
+        font-size: 14px;
+        color: var(--text-secondary);
+        font-weight: 500;
+      }
+
+      /* Error State */
+      .error-banner {
+        background: var(--danger-bg);
+        color: var(--danger);
+        padding: 16px 24px;
+        border-radius: 12px;
+        margin: 20px;
+        display: none;
+        align-items: center;
+        gap: 12px;
+        font-size: 14px;
+        font-weight: 500;
+      }
+      .error-banner.show {
+        display: flex;
+      }
+
+      /* HERO */
+      .hero {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+        color: white;
+        padding: 48px 20px 120px;
+        position: relative;
+        overflow: hidden;
+      }
+      .hero::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 600px;
+        height: 600px;
+        background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, transparent 70%);
+        border-radius: 50%;
+      }
+      .hero-content {
+        max-width: 800px;
+        margin: 0 auto;
+        position: relative;
+        z-index: 1;
+      }
+      .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        padding: 8px 16px;
+        border-radius: 100px;
+        font-size: 13px;
+        font-weight: 500;
+        margin-bottom: 24px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      .hero-badge .dot {
+        width: 8px;
+        height: 8px;
+        background: var(--success);
+        border-radius: 50%;
+        animation: pulse 2s infinite;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+      }
+      .hero h1 {
+        font-size: 36px;
+        font-weight: 800;
+        line-height: 1.2;
+        margin-bottom: 12px;
+        letter-spacing: -0.02em;
+      }
+      .hero p {
+        font-size: 16px;
+        opacity: 0.7;
+        max-width: 400px;
+      }
+
+      /* BALANCE CARD */
+      .balance-section {
+        margin-top: -80px;
+        padding: 0 20px;
+        position: relative;
+        z-index: 2;
+      }
+      .balance-card {
+        max-width: 800px;
+        margin: 0 auto;
+        background: var(--surface);
+        border-radius: var(--radius-xl);
+        padding: 40px;
+        box-shadow: var(--shadow-xl);
+        border: 1px solid var(--border);
+      }
+      .balance-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 32px;
+      }
+      .balance-label {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .balance-icon {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, var(--accent), #60a5fa);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+      }
+      .balance-menu {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: transparent;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-secondary);
+        transition: all 0.2s;
+      }
+      .balance-menu:hover {
+        background: var(--bg);
+      }
+      .balance-amount {
+        font-size: 52px;
+        font-weight: 800;
+        color: var(--text);
+        letter-spacing: -0.03em;
+        line-height: 1;
+        margin-bottom: 8px;
+      }
+      .balance-amount span {
+        font-size: 24px;
+        font-weight: 600;
+        color: var(--text-muted);
+        vertical-align: top;
+        margin-right: 4px;
+      }
+      .balance-subtitle {
+        font-size: 14px;
+        color: var(--text-muted);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .balance-trend {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        background: var(--success-light);
+        color: var(--success);
+        padding: 4px 10px;
+        border-radius: 100px;
+        font-size: 12px;
+        font-weight: 600;
+      }
+      .stats-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-top: 32px;
+        padding-top: 32px;
+        border-top: 1px solid var(--border);
+      }
+      .stat-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+      }
+      .stat-icon-wrap {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        flex-shrink: 0;
+      }
+      .stat-icon-wrap.income {
+        background: var(--success-bg);
+      }
+      .stat-icon-wrap.expense {
+        background: var(--danger-bg);
+      }
+      .stat-info h3 {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-secondary), #10b981;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 6px;
+      }
+      .stat-info .stat-value {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--text), #ef4444;
+        letter-spacing: -0.02em;
+        line-height: 1;
+      }
+      .stat-info .stat-value span {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text-muted);
+      }
+
+      /* CONTAINER */
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 40px 20px;
+      }
+
+      /* SECTION */
+      .section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 24px;
+      }
+      .section-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--text);
+      }
+      .section-action {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--accent);
+        background: none;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 12px;
+        border-radius: 8px;
+        transition: background 0.2s;
+      }
+      .section-action:hover {
+        background: rgba(59, 130, 246, 0.08);
+      }
+      .income-label {
+        color: #22c55e; /* Hijau untuk pemasukan */
+      }
+
+      .expense-label {
+        color: #ef4444; /* Merah untuk pengeluaran */
+      }
+
+      /* CHART */
+      .chart-card {
+        background: var(--surface);
+        border-radius: var(--radius-lg);
+        padding: 28px;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+        margin-bottom: 32px;
+      }
+      .chart-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 28px;
+      }
+      .chart-legend {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-secondary);
+      }
+      .legend-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+      }
+      .legend-dot.income {
+        background: var(--success);
+      }
+      .legend-dot.expense {
+        background: var(--danger);
+      }
+      .chart-visual {
+        height: 220px;
+        position: relative;
+      }
+      .chart-bars {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        height: 180px;
+        gap: 12px;
+        padding: 0 4px;
+      }
+      .chart-group {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+      }
+      .chart-bars-stack {
+        display: flex;
+        align-items: flex-end;
+        gap: 4px;
+        height: 100%;
+        width: 100%;
+        justify-content: center;
+      }
+      .chart-bar {
+        width: 100%;
+        max-width: 24px;
+        border-radius: 6px 6px 0 0;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        min-height: 4px;
+      }
+      .chart-bar.income-bar {
+        background: linear-gradient(to top, var(--success), #34d399);
+      }
+      .chart-bar.expense-bar {
+        background: linear-gradient(to top, var(--danger), #f87171);
+      }
+      .chart-bar:hover {
+        filter: brightness(1.1);
+        transform: scaleY(1.02);
+      }
+      .chart-group-label {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-muted);
+      }
+
+      /* TRANSACTIONS */
+      .tx-card {
+        background: var(--surface);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+        overflow: hidden;
+      }
+      .tx-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 20px 24px;
+        border-bottom: 1px solid var(--border);
+      }
+      .tx-filters {
+        display: flex;
+        gap: 8px;
+      }
+      .tx-filter {
+        padding: 8px 16px;
+        border-radius: 100px;
+        border: none;
+        background: var(--bg);
+        font-family: inherit;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .tx-filter.active {
+        background: var(--primary);
+        color: white;
+      }
+      .tx-list {
+        padding: 8px;
+      }
+      .tx-item {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 16px;
+        border-radius: 12px;
+        transition: all 0.2s;
+        cursor: pointer;
+      }
+      .tx-item:hover {
+        background: var(--bg);
+      }
+      .tx-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        flex-shrink: 0;
+      }
+      .tx-icon.income {
+        background: var(--success-bg);
+      }
+      .tx-icon.expense {
+        background: var(--danger-bg);
+      }
+      .tx-details {
+        flex: 1;
+        min-width: 0;
+      }
+      .tx-title {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--text);
+        margin-bottom: 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .tx-meta {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        color: var(--text-muted);
+      }
+      .tx-tag {
+        padding: 2px 10px;
+        border-radius: 100px;
+        font-size: 11px;
+        font-weight: 600;
+      }
+      .tx-tag.makanan {
+        background: #fef3c7;
+        color: #d97706;
+      }
+      .tx-tag.transport {
+        background: #dbeafe;
+        color: #2563eb;
+      }
+      .tx-tag.belanja {
+        background: #fce7f3;
+        color: #db2777;
+      }
+      .tx-tag.phb {
+        background: #d1fae5;
+        color: #059669;
+      }
+      .tx-tag.lainnya {
+        background: #f1f5f9;
+        color: #64748b;
+      }
+      .tx-amount {
+        text-align: right;
+        flex-shrink: 0;
+      }
+      .tx-amount h4 {
+        font-size: 16px;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+      }
+      .tx-amount.income h4 {
+        color: var(--success);
+      }
+      .tx-amount.expense h4 {
+        color: var(--danger);
+      }
+      .tx-amount p {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-top: 2px;
+      }
+
+      /* Empty */
+      .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--text-muted);
+      }
+      .empty-state-icon {
+        font-size: 56px;
+        margin-bottom: 20px;
+        opacity: 0.4;
+      }
+      .empty-state h3 {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text);
+        margin-bottom: 8px;
+      }
+      .empty-state p {
+        font-size: 14px;
+      }
+
+      /* Footer */
+      .footer {
+        text-align: center;
+        padding: 40px 20px;
+        color: var(--text-muted);
+        font-size: 13px;
+      }
+      .footer a {
+        color: var(--accent);
+        text-decoration: none;
+        font-weight: 600;
+      }
+
+      /* Last Update */
+      .last-update {
+        text-align: center;
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-bottom: 8px;
+      }
+
+      /* Animations */
+      @keyframes fadeUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .animate-fade-up {
+        animation: fadeUp 0.6s ease forwards;
+      }
+      .delay-1 {
+        animation-delay: 0.1s;
+        opacity: 0;
+      }
+      .delay-2 {
+        animation-delay: 0.2s;
+        opacity: 0;
+      }
+      .delay-3 {
+        animation-delay: 0.3s;
+        opacity: 0;
+      }
+
+      /* Responsive */
+      @media (max-width: 640px) {
+        .hero {
+          padding: 32px 16px 100px;
+        }
+        .hero h1 {
+          font-size: 28px;
+        }
+        .balance-card {
+          padding: 28px 24px;
+          border-radius: var(--radius-lg);
+        }
+        .balance-amount {
+          font-size: 38px;
+        }
+        .balance-amount span {
+          font-size: 20px;
+        }
+        .stats-row {
+          gap: 12px;
+          margin-top: 24px;
+          padding-top: 24px;
+        }
+        .stat-icon-wrap {
+          width: 40px;
+          height: 40px;
+          font-size: 18px;
+        }
+        .stat-info .stat-value {
+          font-size: 18px;
+        }
+        .container {
+          padding: 24px 16px;
+        }
+        .chart-card {
+          padding: 20px;
+        }
+        .tx-header {
+          flex-direction: column;
+          gap: 12px;
+          align-items: flex-start;
+        }
+        .tx-item {
+          gap: 12px;
+        }
+        .tx-icon {
+          width: 40px;
+          height: 40px;
+          font-size: 18px;
+        }
+      }
+
+      /* Print */
+      @media print {
+        .hero {
+          background: white !important;
+          color: black !important;
+          padding: 20px !important;
+        }
+        .hero::before,
+        .hero::after {
+          display: none;
+        }
+        .balance-card {
+          box-shadow: none;
+          border: 2px solid #000;
+        }
+        .chart-card,
+        .tx-card {
+          box-shadow: none;
+          border: 1px solid #ddd;
+          break-inside: avoid;
+        }
+        .loading-overlay,
+        .error-banner {
+          display: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- LOADING -->
+    <div class="loading-overlay" id="loadingOverlay">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">Memuat data dari Database Sheets...</div>
+    </div>
+
+    <!-- ERROR BANNER -->
+    <div class="error-banner" id="errorBanner">
+      <span>⚠️</span>
+      <span id="errorText">Gagal memuat data</span>
+    </div>
+
+    <!-- HERO -->
+    <section class="hero">
+      <div class="hero-content">
+        <div class="hero-badge">
+          <span class="dot"></span>
+          <span id="connectionStatus">Menghubungkan...</span>
+        </div>
+        <h1>BendaharaKu</h1>
+        <h5>Jl.Saninten Timur II, RT.03/17, Srondol Wetan, Banyumanik, Semarang.</h5>
+        <p>Kelola pemasukan, pengeluaran, dan saldo dalam satu tampilan ONLINE.</p>
+      </div>
+    </section>
+
+    <!-- BALANCE CARD -->
+    <section class="balance-section">
+      <div class="balance-card animate-fade-up delay-1">
+        <div class="balance-header">
+          <div class="balance-label">
+            <div class="balance-icon">💎</div>
+            Total Saldo
+          </div>
+          <button class="balance-menu" onclick="window.print()" title="Cetak Laporan">🖨️</button>
+        </div>
+
+        <div class="balance-amount" id="balanceAmount"><span>Rp</span>0</div>
+
+        <div class="balance-subtitle">
+          <span class="balance-trend" id="balanceTrend">▲ 0%</span>
+          <span>dari bulan lalu</span>
+        </div>
+
+        <div class="stats-row">
+          <div class="stat-item">
+            <!-- <div class="stat-icon-wrap income">📈</div> -->
+            <div class="stat-info">
+              <h4 class="income-label">PEMASUKAN</h4>
+              <div class="stat-value" id="incomeAmount"><span>Rp </span>0</div>
+            </div>
+          </div>
+          <div class="stat-item">
+            <!-- <div class="stat-icon-wrap expense">📉</div> -->
+            <div class="stat-info">
+              <h4 class="expense-label">PENGELUARAN</h4>
+              <div class="stat-value" id="expenseAmount"><span>Rp </span>0</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MAIN CONTENT -->
+    <div class="container">
+      <!-- TRANSACTIONS -->
+      <div class="animate-fade-up delay-3">
+        <div class="section-header">
+          <h2 class="section-title">Riwayat Transaksi</h2>
+          <button class="section-action" onclick="exportToCSV()" id="btnExport">📥 Export CSV</button>
+        </div>
+
+        <div class="tx-card">
+          <div class="tx-header">
+            <div class="tx-filters">
+              <button class="tx-filter active" onclick="filterTx('all')" data-filter="all">Semua</button>
+              <button class="tx-filter" onclick="filterTx('income')" data-filter="income">Masuk</button>
+              <button class="tx-filter" onclick="filterTx('expense')" data-filter="expense">Keluar</button>
+            </div>
+          </div>
+          <div class="tx-list" id="txList"></div>
+        </div>
+      </div>
+      <div class="section-header">
+        <h4 class="section-title"></h4>
+      </div>
+      <!-- CHART -->
+      <div class="chart-card animate-fade-up delay-2">
+        <div class="chart-header">
+          <h4 class="section-title">Grafik 7 Hari Terakhir</h4>
+          <div class="chart-legend">
+            <span class="legend-item"><span class="legend-dot income"></span>Masuk</span>
+            <span class="legend-item"><span class="legend-dot expense"></span>Keluar</span>
+          </div>
+        </div>
+        <div class="chart-visual" id="chartContainer">
+          <div class="chart-bars" id="chartBars"></div>
+        </div>
+      </div>
+
+      <!-- FOOTER -->
+      <div class="footer animate-fade-up delay-3">
+        <p class="last-update" id="lastUpdate">Terakhir diperbarui: -</p>
+        <p>BendaharaKu. Terhubung langsung dengan Database RT03.</p>
+      </div>
+    </div>
+
+    <script>
+      // ============================================
+      // KONFIGURASI - GANTI DENGAN URL WEB APP ANDA
+      // ============================================
+      const CONFIG = {
+        // GANTI INI dengan URL Web App dari Google Apps Script
+        API_URL: 'https://script.google.com/macros/s/AKfycbwCO9HKRqleEnwses50gEhO58lURY72XekHIxsjwQNhOmTlG6HLqSD3I3fiCg7y-hlh/exec',
+
+        // Nama sheet (opsional, default: 'Transaksi')
+        SHEET_NAME: 'Transaksi',
+      };
+
+      // ============================================
+      // STATE
+      // ============================================
+      let allTransactions = [];
+      let currentFilter = 'all';
+      let weeklyData = {};
+
+      // ============================================
+      // UTILITAS
+      // ============================================
+      function formatNumber(num) {
+        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+      }
+
+      function formatDate(dateStr) {
+        if (!dateStr) return '-';
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) return dateStr;
+        return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+      }
+
+      function formatShortDate(dateStr) {
+        if (!dateStr) return '';
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) return dateStr;
+        return d.toLocaleDateString('id-ID', { weekday: 'short' });
+      }
+
+      function getCategoryIcon(category) {
+        const icons = {
+          gaji: '💼',
+          investasi: '📈',
+          freelance: '💻',
+          bonus: '🎁',
+          makanan: '🍔',
+          transport: '🚗',
+          belanja: '🛍️',
+          hiburan: '🎬',
+          kesehatan: '💊',
+          pendidikan: '📚',
+          lainnya: '📦',
+        };
+        return icons[category] || '📦';
+      }
+
+      function getCategoryLabel(category) {
+        const labels = {
+          gaji: 'Gaji',
+          investasi: 'Investasi',
+          freelance: 'Freelance',
+          bonus: 'Bonus',
+          makanan: 'Makanan',
+          transport: 'Transport',
+          belanja: 'Belanja',
+          hiburan: 'Hiburan',
+          kesehatan: 'Kesehatan',
+          pendidikan: 'Pendidikan',
+          lainnya: 'Lainnya',
+        };
+        return labels[category] || category;
+      }
+
+      function getLast7Days() {
+        const days = [];
+        for (let i = 6; i >= 0; i--) {
+          const d = new Date();
+          d.setDate(d.getDate() - i);
+          days.push(d.toISOString().split('T')[0]);
+        }
+        return days;
+      }
+
+      // ============================================
+      // API CALLS
+      // ============================================
+      async function fetchFromSheets(action, params = {}) {
+        const url = new URL(CONFIG.API_URL);
+        url.searchParams.append('action', action);
+        Object.keys(params).forEach((key) => url.searchParams.append(key, params[key]));
+
+        try {
+          const response = await fetch(url, {
+            method: 'GET',
+            mode: 'cors',
+            headers: { Accept: 'application/json' },
+          });
+
+          if (!response.ok) throw new Error('HTTP ' + response.status);
+          return await response.json();
+        } catch (error) {
+          console.error('Fetch error:', error);
+          throw error;
+        }
+      }
+
+      // ============================================
+      // RENDER FUNCTIONS
+      // ============================================
+      function renderSummary(summary) {
+        document.getElementById('balanceAmount').innerHTML = `<span>Rp</span>${formatNumber(summary.balance)}`;
+        document.getElementById('incomeAmount').innerHTML = `<span>Rp</span>${formatNumber(summary.income)}`;
+        document.getElementById('expenseAmount').innerHTML = `<span>Rp</span>${formatNumber(summary.expense)}`;
+
+        // Hitung trend (simulasi - bandingkan dengan data sebelumnya jika ada)
+        const trend = summary.income > 0 ? (((summary.income - summary.expense) / summary.income) * 100).toFixed(1) : 0;
+        const trendIcon = trend >= 0 ? '▲' : '▼';
+        document.getElementById('balanceTrend').textContent = `${trendIcon} ${Math.abs(trend)}%`;
+      }
+
+      function renderChart(transactions) {
+        const last7Days = getLast7Days();
+        const chartData = last7Days.map((date) => {
+          const dayTx = transactions.filter((t) => t.date === date);
+          return {
+            day: formatShortDate(date),
+            fullDate: date,
+            income: dayTx.filter((t) => t.type === 'income').reduce((s, t) => s + t.amount, 0),
+            expense: dayTx.filter((t) => t.type === 'expense').reduce((s, t) => s + t.amount, 0),
+          };
+        });
+
+        const maxVal = Math.max(...chartData.map((d) => Math.max(d.income, d.expense)), 1);
+        const container = document.getElementById('chartBars');
+
+        container.innerHTML = chartData
+          .map((d) => {
+            const incomeH = (d.income / maxVal) * 100;
+            const expenseH = (d.expense / maxVal) * 100;
+
+            return `
+                    <div class="chart-group">
+                        <div class="chart-bars-stack">
+                            <div class="chart-bar income-bar" style="height: ${Math.max(incomeH, 4)}%" title="Masuk: Rp ${formatNumber(d.income)}"></div>
+                            <div class="chart-bar expense-bar" style="height: ${Math.max(expenseH, 4)}%" title="Keluar: Rp ${formatNumber(d.expense)}"></div>
+                        </div>
+                        <span class="chart-group-label">${d.day}</span>
+                    </div>
+                `;
+          })
+          .join('');
+      }
+
+      function renderTransactions(transactions) {
+        const list = document.getElementById('txList');
+        const filtered = currentFilter === 'all' ? transactions : transactions.filter((t) => t.type === currentFilter);
+
+        if (filtered.length === 0) {
+          list.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📭</div>
+                        <h3>Belum ada transaksi</h3>
+                        <p>Data transaksi akan muncul di sini setelah ditambahkan ke Google Sheets.</p>
+                    </div>
+                `;
+          return;
+        }
+
+        list.innerHTML = filtered
+          .map((t) => {
+            const isIncome = t.type === 'income';
+            return `
+                    <div class="tx-item">
+                        <div class="tx-icon ${t.type}">${getCategoryIcon(t.category)}</div>
+                        <div class="tx-details">
+                            <div class="tx-title">${t.note || '-'}</div>
+                            <div class="tx-meta">
+                                <span class="tx-tag ${t.category}">${getCategoryLabel(t.category)}</span>
+                                <span>${formatDate(t.date)}</span>
+                            </div>
+                        </div>
+                        <div class="tx-amount ${t.type}">
+                            <h4>${isIncome ? '+' : '-'} Rp ${formatNumber(t.amount)}</h4>
+                            <p>${isIncome ? 'Pemasukan' : 'Pengeluaran'}</p>
+                        </div>
+                    </div>
+                `;
+          })
+          .join('');
+      }
+
+      // ============================================
+      // FILTER
+      // ============================================
+      function filterTx(type) {
+        currentFilter = type;
+        document.querySelectorAll('.tx-filter').forEach((btn) => {
+          btn.classList.toggle('active', btn.dataset.filter === type);
+        });
+        renderTransactions(allTransactions);
+      }
+
+      // ============================================
+      // EXPORT
+      // ============================================
+      function exportToCSV() {
+        if (allTransactions.length === 0) {
+          alert('Tidak ada data untuk diexport');
+          return;
+        }
+
+        const headers = ['ID', 'Tanggal', 'Tipe', 'Kategori', 'Nominal', 'Catatan'];
+        const rows = allTransactions.map((t) => [t.id, t.date, t.type, getCategoryLabel(t.category), t.amount, `"${(t.note || '').replace(/"/g, '""')}"`]);
+
+        const csv = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+        const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `Bendaharaku_${new Date().toISOString().split('T')[0]}.csv`;
+        link.click();
+      }
+
+      // ============================================
+      // MAIN LOAD
+      // ============================================
+      async function loadData() {
+        const loading = document.getElementById('loadingOverlay');
+        const errorBanner = document.getElementById('errorBanner');
+        const statusText = document.getElementById('connectionStatus');
+
+        try {
+          // Cek konfigurasi
+          if (CONFIG.API_URL.includes('XXXXXXXX')) {
+            throw new Error('Mohon ganti CONFIG.API_URL dengan URL Web App Anda');
+          }
+
+          // Fetch data
+          const result = await fetchFromSheets('getAll');
+
+          if (result.result !== 'success') {
+            throw new Error(result.message || 'Gagal memuat data');
+          }
+
+          allTransactions = result.data || [];
+          const summary = result.summary || { balance: 0, income: 0, expense: 0 };
+
+          // Render
+          renderSummary(summary);
+          renderChart(allTransactions);
+          renderTransactions(allTransactions);
+
+          // Update status
+          statusText.textContent = 'Terhubung';
+          document.querySelector('.hero-badge .dot').style.background = '#10b981';
+
+          // Update waktu
+          document.getElementById('lastUpdate').textContent = 'Terakhir diperbarui: ' + new Date().toLocaleString('id-ID');
+
+          // Sembunyikan loading
+          setTimeout(() => loading.classList.add('hidden'), 500);
+        } catch (error) {
+          console.error('Load error:', error);
+          loading.classList.add('hidden');
+
+          // Tampilkan error
+          document.getElementById('errorText').textContent = error.message;
+          errorBanner.classList.add('show');
+          statusText.textContent = 'Gagal Terhubung';
+          document.querySelector('.hero-badge .dot').style.background = '#ef4444';
+
+          // Tampilkan data kosong
+          renderSummary({ balance: 0, income: 0, expense: 0 });
+          document.getElementById('chartBars').innerHTML = '';
+          document.getElementById('txList').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">⚠️</div>
+                        <h3>Gagal Memuat Data</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+        }
+      }
+
+      // ============================================
+      // INIT
+      // ============================================
+      document.addEventListener('DOMContentLoaded', loadData);
+    </script>
+  </body>
+</html>
