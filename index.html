@@ -1287,10 +1287,12 @@
             <h3><i class="fas fa-chart-bar" style="color: var(--primary); margin-right: 6px"></i>Pemasukan vs Pengeluaran</h3>
             <div style="position: relative; height: 220px"><canvas id="chartBar"></canvas></div>
           </div>
+          <!-- DASHBOARD 
           <div class="chart-card">
             <h3><i class="fas fa-chart-pie" style="color: var(--accent); margin-right: 6px"></i>Komposisi Pengeluaran</h3>
             <div style="position: relative; height: 220px"><canvas id="chartDoughnut"></canvas></div>
           </div>
+          -->
         </div>
         <div class="table-wrap">
           <div class="table-header">
@@ -1551,7 +1553,7 @@
 
       let transactions = [];
       let barChart = null;
-      let doughnutChart = null;
+      //let doughnutChart = null;
       let touchStartX = 0;
       let touchStartY = 0;
       let isSwiping = false;
@@ -1763,7 +1765,7 @@
         <div class="summary-card animate-in"><div class="card-glow" style="background:var(--accent);"></div><div class="card-icon" style="background:rgba(217,119,6,0.1);color:var(--accent);"><i class="fas fa-receipt"></i></div><div class="card-label">Transaksi</div><div class="card-value" style="color:var(--accent);">${monthData.length}</div></div>
     `;
         renderBarChart();
-        renderDoughnutChart();
+        //renderDoughnutChart();
         renderRecentTable();
       }
 
@@ -1803,7 +1805,7 @@
           },
         });
       }
-
+/*
       function renderDoughnutChart() {
         const now = new Date();
         const curMonth = `${now.getFullYear()}-${pad(now.getMonth() + 1)}`;
@@ -1836,7 +1838,7 @@
           },
         });
       }
-
+*/
       function renderRecentTable() {
         const sorted = [...transactions].sort((a, b) => b.tanggal.localeCompare(a.tanggal));
         renderTableDual('recentTableWrap', sorted.slice(0, 5), true);
